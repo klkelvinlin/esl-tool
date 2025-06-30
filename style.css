@@ -1,0 +1,143 @@
+/* ESL Tool Custom Styles */
+
+/* Custom styles can be added here */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Example custom utility classes */
+.text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Custom animations */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Pill highlight for article words */
+.vocab-pill {
+  display: inline;
+  font-weight: bold;
+  color: #fff;
+  border-radius: 0.25rem;
+  padding: 0.1em 0.6em;
+  margin: 0 0.1em;
+  font-size: 1em;
+}
+.vocab-pill-blue { background: #60a5fa; }   /* Tailwind blue-400 */
+.vocab-pill-green { background: #6ee7b7; color: #065f46; } /* Tailwind green-300, dark text */
+.vocab-pill-red { background: #fca5a5; color: #991b1b; }   /* Tailwind red-300, dark text */
+.vocab-pill-yellow { background: #fde68a; color: #92400e; } /* Tailwind yellow-300, dark text */
+.vocab-pill-purple { background: #c4b5fd; color: #5b21b6; } /* Tailwind purple-300, dark text */
+
+/* Vocabulary list card */
+.vocab-card {
+  border-radius: 0.25rem;
+  padding: 0.75em 1em;
+  margin-bottom: 0.75em;
+}
+.vocab-card-blue {
+  border-color: #afcc52;
+  background: #afcc52;
+}
+.vocab-card-green {
+  border-color: #e3aa42;
+  background: #e3aa42;
+}
+.vocab-card-yellow {
+  border-color: #fd814a;
+  background: #fd814a;
+}
+.vocab-card-red {
+  border-color: #87b792;
+  background: #87b792;
+}
+.vocab-card-purple {
+  border-color: #ead494;
+  background: #ead494;
+}
+
+.vocab-word {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+.vocab-pron {
+  color: #64748b;
+  font-style: italic;
+  margin-left: 0.5em;
+}
+.vocab-pos {
+  color: #64748b;
+  font-size: 0.95em;
+  margin-right: 0.5em;
+}
+.vocab-chinese {
+  color: #64748b;
+  font-size: 0.95em;
+}
+
+#articleDisplay p {
+  margin-bottom: 1.2em;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  .container, .grid {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .lg\:col-span-3, .lg\:col-span-2 {
+    flex: 3 1 0%;
+    max-width: 75vw;
+    width: 75vw;
+  }
+  #vocabularyLists {
+    flex: 1 1 0%;
+    max-width: 25vw;
+    width: 25vw;
+    page-break-inside: avoid;
+  }
+  /* Only hide upload controls and buttons, not the image itself */
+  #imageUploadSection, #addVocabSection, #resetBtn, #previewBtn, #printBtn, .content-placeholder > .mb-4, .content-placeholder > .flex {
+    display: none !important;
+  }
+  .prose {
+    max-width: 100% !important;
+  }
+  /* Hide all buttons in print */
+  button, .hidden-print {
+    display: none !important;
+  }
+  /* Ensure image is always visible */
+  #imageDisplay, #uploadedImage {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESL Tool</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <!--
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">ESL Tool</h1>
+            <p class="text-gray-600">English as a Second Language Learning Assistant</p>
+        </header>
+        -->
+
+        <!-- 3-Column Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            
+            <!-- Form Section -->
+            <div class="bg-white rounded-lg shadow-md p-2 lg:col-span-1">
+                <div class="content-placeholder">
+                    <!-- Reset Button -->
+                    <div class="mb-4 flex flex-row gap-2">
+                        <button type="button" id="resetBtn" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-3 rounded transition-colors">
+                            Reset
+                        </button>
+                        <button type="button" id="previewBtn" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded transition-colors">
+                            Preview
+                        </button>
+                        <button type="button" id="printBtn" class="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-3 rounded transition-colors hidden">
+                            Print
+                        </button>
+                    </div>
+
+                    <!-- Drag and Drop Image Upload -->
+                    <div id="imageUploadSection" class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Upload Image</label>
+                            <a href="#" id="toggleImageLink" class="text-xs text-blue-600 hover:text-blue-800 underline">Hide</a>
+                        </div>
+                        <div id="imageUploadForm">
+                            <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer">
+                                <div class="text-gray-500">
+                                    <svg class="mx-auto h-12 w-12 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <p class="text-lg">Drag and drop an image here</p>
+                                    <p class="text-sm">or click to browse</p>
+                                </div>
+                                <input type="file" id="fileInput" accept="image/*" class="hidden">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Article Textarea -->
+                    <div id="articleTextSection">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="articleText" class="block text-sm font-medium text-gray-700">Article Text</label>
+                            <a href="#" id="toggleArticleLink" class="text-xs text-blue-600 hover:text-blue-800 underline">Hide</a>
+                        </div>
+                        <div id="articleTextForm">
+                            <textarea id="articleText" rows="8" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Write your article here..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Add Vocabulary Section -->
+                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <h3 class="text-sm font-medium text-gray-700 mb-3">Add Vocabulary</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label for="vocabWord" class="block text-xs font-medium text-gray-600 mb-1">Word</label>
+                                <input type="text" id="vocabWord" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="vocabDefinition" class="block text-xs font-medium text-gray-600 mb-1">Pronunciation</label>
+                                <input type="text" id="vocabDefinition" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="vocabChinese" class="block text-xs font-medium text-gray-600 mb-1">Chinese Translation</label>
+                                <input type="text" id="vocabChinese" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="vocabPOS" class="block text-xs font-medium text-gray-600 mb-1">POS</label>
+                                <select id="vocabPOS" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select POS</option>
+                                    <option value="n.">Noun (n.)</option>
+                                    <option value="v.">Verb (v.)</option>
+                                    <option value="adj.">Adjective (adj.)</option>
+                                    <option value="adv.">Adverb (adv.)</option>
+                                    <option value="prep.">Preposition (prep.)</option>
+                                    <option value="conj.">Conjunction (conj.)</option>
+                                    <option value="pron.">Pronoun (pron.)</option>
+                                    <option value="interj.">Interjection (interj.)</option>
+                                    <option value="art.">Article (art.)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Color</label>
+                                <div class="flex flex-wrap gap-2 w-full">
+                                    <input type="radio" id="colorRed" name="vocabColor" value="red" class="sr-only">
+                                    <label for="colorRed" class="w-8 h-8" style="background: #87b792; border-radius: 0.5rem; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s;"></label>
+                                    
+                                    <input type="radio" id="colorBlue" name="vocabColor" value="blue" class="sr-only">
+                                    <label for="colorBlue" class="w-8 h-8" style="background: #afcc52; border-radius: 0.5rem; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s;"></label>
+                                    
+                                    <input type="radio" id="colorGreen" name="vocabColor" value="green" class="sr-only">
+                                    <label for="colorGreen" class="w-8 h-8" style="background: #e3aa42; border-radius: 0.5rem; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s;"></label>
+                                    
+                                    <input type="radio" id="colorYellow" name="vocabColor" value="yellow" class="sr-only">
+                                    <label for="colorYellow" class="w-8 h-8" style="background: #fd814a; border-radius: 0.5rem; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s;"></label>
+                                    
+                                    <input type="radio" id="colorPurple" name="vocabColor" value="purple" class="sr-only">
+                                    <label for="colorPurple" class="w-8 h-8" style="background: #ead494; border-radius: 0.5rem; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s;"></label>
+                                </div>
+                            </div>
+                            <button type="button" id="saveVocabBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded transition-colors">
+                                Save Vocabulary
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Article Section -->
+            <div class="bg-white rounded-lg shadow-md p-2 lg:col-span-2">
+                <div class="content-placeholder">
+                    <!-- Image Display Area -->
+                    <div id="imageDisplay" class="mb-4 hidden">
+                        <img id="uploadedImage" class="w-full h-auto rounded-lg shadow-md" alt="Uploaded image">
+                    </div>
+                    
+                    <!-- Article Content Display -->
+                    <div id="articleDisplay" class="prose prose-sm max-w-none">
+                        <!-- Article content will be displayed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vocabulary Lists Section -->
+            <div id="vocabularyLists" class="bg-white rounded-lg shadow-md p-2 lg:col-span-1">
+                <div class="content-placeholder">
+                    <!-- Content will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
