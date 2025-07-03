@@ -23,6 +23,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // Vocabulary form elements
     const vocabText = document.getElementById('vocabText');
     const saveVocabBtn = document.getElementById('saveVocabBtn');
+    
+    // POS color picker elements
+    const posColorPickers = {
+        'n.': document.getElementById('posNoun'),
+        'v.': document.getElementById('posVerb'),
+        'adj.': document.getElementById('posAdj'),
+        'adv.': document.getElementById('posAdv'),
+        'prep.': document.getElementById('posPrep'),
+        'conj.': document.getElementById('posConj'),
+        'pron.': document.getElementById('posPron'),
+        'interj.': document.getElementById('posInterj'),
+        'art.': document.getElementById('posArt')
+    };
+    
+    // POS mapping for both full words and abbreviations
+    const posMapping = {
+        'noun': 'n.',
+        'verb': 'v.',
+        'adjective': 'adj.',
+        'adverb': 'adv.',
+        'preposition': 'prep.',
+        'conjunction': 'conj.',
+        'pronoun': 'pron.',
+        'interjection': 'interj.',
+        'article': 'art.',
+        'n.': 'n.',
+        'v.': 'v.',
+        'adj.': 'adj.',
+        'adv.': 'adv.',
+        'prep.': 'prep.',
+        'conj.': 'conj.',
+        'pron.': 'pron.',
+        'interj.': 'interj.',
+        'art.': 'art.'
+    };
 
     // Preview button functionality
     const previewBtn = document.getElementById('previewBtn');
@@ -35,6 +70,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load saved data on page load
     loadSavedData();
     loadToggleStates();
+    loadPOSColors();
+    updateVocabDisplay();
+    
+    // Add event listeners to POS color pickers
+    Object.values(posColorPickers).forEach(picker => {
+        if (picker) {
+            picker.addEventListener('change', function() {
+                savePOSColors();
+                updateVocabDisplay(); // Update vocabulary display when colors change
+            });
+        }
+    });
 
     // Drag and drop functionality
     dropZone.addEventListener('dragover', function(e) {
@@ -122,33 +169,26 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset vocabulary list - start with empty array
         let vocabList = [];
         
-        // Generate random hex color
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
-        
         // Process vocabulary in groups of 4 lines
         for (let i = 0; i < lines.length; i += 4) {
             const word = lines[i].trim();
             const pronunciation = lines[i + 1].trim();
-            const pos = lines[i + 2].trim();
+            let pos = lines[i + 2].trim();
             const definition = lines[i + 3].trim();
             
+            // Normalize POS to abbreviation
+            pos = posMapping[pos.toLowerCase()] || pos;
+            
             if (word && pronunciation && pos && definition) {
-                // Generate random hex color for each vocabulary item
-                const randomColor = getRandomColor();
+                // Get color based on POS
+                const posColor = getPOSColor(pos);
                 
                 const vocabItem = {
                     word: word,
                     pronunciation: pronunciation,
-                    pos: pos,
+                    pos: pos, // always abbreviation
                     definition: definition,
-                    color: randomColor,
+                    color: posColor,
                     timestamp: Date.now()
                 };
                 
@@ -184,6 +224,27 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Clear vocabulary form
             vocabText.value = '';
+            
+            // Reset POS colors to defaults
+            const defaultColors = {
+                'n.': '#e3f2fd',
+                'v.': '#f3e5f5',
+                'adj.': '#e8f5e8',
+                'adv.': '#fff3e0',
+                'prep.': '#fce4ec',
+                'conj.': '#e0f2f1',
+                'pron.': '#f1f8e9',
+                'interj.': '#fff8e1',
+                'art.': '#fafafa'
+            };
+            
+            Object.keys(posColorPickers).forEach(pos => {
+                const picker = posColorPickers[pos];
+                if (picker) {
+                    picker.value = defaultColors[pos];
+                }
+            });
+            savePOSColors();
             
             // Clear vocabulary display
             updateVocabDisplay();
@@ -231,9 +292,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         sortedVocab.forEach(item => {
             const regex = new RegExp(`\\b${item.word}\\b`, 'gi');
-            const bgColor = item.color || '#e3f2fd';
-            const textColor = getContrastColor(bgColor);
-            const colorStyle = `background: ${bgColor}; color: ${textColor}; border-radius: 0.25rem; font-weight: bold; padding: 0.1em 0.6em; margin: 0 0.1em; font-size: 1em; display: inline; line-height: 2;`;
+            // Always use the current POS color for pills
+            const bgColor = getPOSColor(item.pos) || '#e3f2fd';
+            const wordColor = darkenColor(bgColor, 0.6); // Match card word color
+            const colorStyle = `background: ${bgColor}; color: ${wordColor}; border-radius: 0.25rem; font-weight: bold; padding: 0.1em 0.6em; margin: 0 0.1em; font-size: 1em; display: inline; line-height: 2;`;
             highlightedText = highlightedText.replace(regex, `<span style=\"${colorStyle}\">${item.word}</span>`);
         });
         
@@ -268,25 +330,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let vocabHTML = '';
         vocabList.forEach((item, index) => {
-            // Use the stored color or default to a light blue
-            const bgColor = item.color || '#e3f2fd';
+            // Always use the current POS color for display
+            const bgColor = getPOSColor(item.pos) || '#e3f2fd';
+            const wordColor = darkenColor(bgColor, 0.6); // 60% darker than bg
             const textColor = getContrastColor(bgColor);
             const cardStyle = `background: ${bgColor}; border-radius: 0.25rem; padding: 0.75em 1em; margin-bottom: 0.75em;`;
-            const wordStyle = `color: ${textColor}; font-weight: bold; font-size: 1.1em;`;
+            const wordStyle = `color: ${wordColor}; font-weight: bold; font-size: 1.1em;`;
             
             vocabHTML += `
                 <div style="${cardStyle}" data-vocab-index="${index}">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <div><span style="${wordStyle}">${item.word}</span> <span class="vocab-pron">[${item.pronunciation}]</span></div>
-                            <div class="mt-1">
-                                <span class="vocab-pos">${item.pos}</span>
-                                <span class="vocab-definition">${item.definition}</span>
-                            </div>
-                        </div>
-                        <div class="ml-2">
-                            <input type="color" class="vocab-color-picker w-8 h-8 border border-gray-300 rounded cursor-pointer" 
-                                   data-index="${index}" value="${bgColor}" title="Change color">
+                    <div class="flex-1">
+                        <div style=\"max-width:600px;margin:0 auto;\"><span style="${wordStyle}">${item.word}</span> <span class=\"vocab-pron text-gray-400\">[${item.pronunciation}]</span> <span class=\"vocab-pos text-gray-400\">${getPOSAbbreviation(item.pos)}</span></div>
+                        <div class="mt-1" style="max-width:800px;margin:0 auto;">
+                            <span class=\"vocab-definition text-gray-600\">${item.definition}</span>
                         </div>
                     </div>
                 </div>
@@ -294,34 +350,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         vocabContainer.innerHTML = vocabHTML;
-        
-        // Add event listeners to color pickers
-        document.querySelectorAll('.vocab-color-picker').forEach(picker => {
-            picker.addEventListener('change', function() {
-                const index = parseInt(this.getAttribute('data-index'));
-                const newColor = this.value;
-                
-                // Update vocabulary item color
-                let vocabList = JSON.parse(localStorage.getItem('eslTool_vocabList') || '[]');
-                if (vocabList[index]) {
-                    vocabList[index].color = newColor;
-                    localStorage.setItem('eslTool_vocabList', JSON.stringify(vocabList));
-                    
-                    // Update the card background color
-                    const card = this.closest('[data-vocab-index]');
-                    card.style.background = newColor;
-                    
-                    // Update the word color for contrast
-                    const wordSpan = card.querySelector('span[style*="font-weight: bold"]');
-                    if (wordSpan) {
-                        wordSpan.style.color = getContrastColor(newColor);
-                    }
-                    
-                    // Update highlighting in article
-                    highlightVocabularyInArticle();
-                }
-            });
-        });
         
         // Update highlighting in article after vocabulary changes
         highlightVocabularyInArticle();
@@ -399,11 +427,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (printBtn) printBtn.classList.remove('hidden');
         
-        // Hide color pickers in vocabulary cards when in preview mode
-        const colorPickers = document.querySelectorAll('.vocab-color-picker');
-        colorPickers.forEach(picker => {
-            picker.style.display = 'none';
-        });
+        // Hide POS color settings when in preview mode
+        const posColorSection = document.querySelector('.bg-gray-50.rounded-lg');
+        if (posColorSection) {
+            posColorSection.style.display = 'none';
+        }
     }
 
     if (printBtn) {
@@ -412,5 +440,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Color picker functionality removed - using random colors instead
+    // POS Color Management Functions
+    function loadPOSColors() {
+        const savedColors = JSON.parse(localStorage.getItem('eslTool_posColors') || '{}');
+        
+        // Set default colors if none saved
+        const defaultColors = {
+            'n.': '#e3f2fd',
+            'v.': '#f3e5f5',
+            'adj.': '#e8f5e8',
+            'adv.': '#fff3e0',
+            'prep.': '#fce4ec',
+            'conj.': '#e0f2f1',
+            'pron.': '#f1f8e9',
+            'interj.': '#fff8e1',
+            'art.': '#fafafa'
+        };
+        
+        Object.keys(posColorPickers).forEach(pos => {
+            const picker = posColorPickers[pos];
+            if (picker) {
+                const color = savedColors[pos] || defaultColors[pos];
+                picker.value = color;
+            }
+        });
+    }
+    
+    function savePOSColors() {
+        const colors = {};
+        Object.keys(posColorPickers).forEach(pos => {
+            const picker = posColorPickers[pos];
+            if (picker) {
+                colors[pos] = picker.value;
+            }
+        });
+        localStorage.setItem('eslTool_posColors', JSON.stringify(colors));
+    }
+    
+    function getPOSColor(pos) {
+        // Normalize POS to abbreviated form
+        const normalizedPos = posMapping[pos.toLowerCase()] || pos;
+        const picker = posColorPickers[normalizedPos];
+        return picker ? picker.value : '#e3f2fd'; // Default to light blue
+    }
+    
+    function getPOSAbbreviation(pos) {
+        return posMapping[pos.toLowerCase()] || pos;
+    }
+
+    // Helper to darken a hex color by a percentage
+    function darkenColor(hex, percent) {
+        // Remove # if present
+        hex = hex.replace(/^#/, '');
+        let r = parseInt(hex.substring(0,2), 16);
+        let g = parseInt(hex.substring(2,4), 16);
+        let b = parseInt(hex.substring(4,6), 16);
+        r = Math.floor(r * (1 - percent));
+        g = Math.floor(g * (1 - percent));
+        b = Math.floor(b * (1 - percent));
+        return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+    }
 });
