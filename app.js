@@ -21,12 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const articleTextForm = document.getElementById('articleTextForm');
     
     // Vocabulary form elements
-    const vocabWord = document.getElementById('vocabWord');
-    const vocabChinese = document.getElementById('vocabChinese');
-    const vocabPOS = document.getElementById('vocabPOS');
-    const vocabDefinition = document.getElementById('vocabDefinition');
+    const vocabText = document.getElementById('vocabText');
     const saveVocabBtn = document.getElementById('saveVocabBtn');
-    const vocabColorInputs = document.querySelectorAll('input[name="vocabColor"]');
 
     // Preview button functionality
     const previewBtn = document.getElementById('previewBtn');
@@ -108,44 +104,63 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Save vocabulary button
     saveVocabBtn.addEventListener('click', function() {
-        const word = vocabWord.value.trim();
-        const chinese = vocabChinese.value.trim();
-        const pos = vocabPOS.value;
-        const pronunciation = vocabDefinition.value.trim();
-        const selectedColor = document.querySelector('input[name="vocabColor"]:checked');
+        const vocabTextContent = vocabText.value.trim();
         
-        if (!word || !chinese || !pos || !pronunciation || !selectedColor) {
-            alert('Please fill in all vocabulary fields and select a color.');
+        if (!vocabTextContent) {
+            alert('Please enter vocabulary text.');
             return;
         }
 
-        const vocabItem = {
-            word: word,
-            chinese: chinese,
-            pos: pos,
-            definition: pronunciation,
-            color: selectedColor.value,
-            timestamp: Date.now()
-        };
+        // Parse the vocabulary text
+        const lines = vocabTextContent.split('\n').filter(line => line.trim() !== '');
+        
+        if (lines.length % 4 !== 0) {
+            alert('Vocabulary format should be: word\\npronunciation\\npos\\ndefinition\\nword\\n... (groups of 4 lines)');
+            return;
+        }
 
-        // Get existing vocabulary list
-        let vocabList = JSON.parse(localStorage.getItem('eslTool_vocabList') || '[]');
-        vocabList.push(vocabItem);
+        // Reset vocabulary list - start with empty array
+        let vocabList = [];
+        
+        // Generate random hex color
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        
+        // Process vocabulary in groups of 4 lines
+        for (let i = 0; i < lines.length; i += 4) {
+            const word = lines[i].trim();
+            const pronunciation = lines[i + 1].trim();
+            const pos = lines[i + 2].trim();
+            const definition = lines[i + 3].trim();
+            
+            if (word && pronunciation && pos && definition) {
+                // Generate random hex color for each vocabulary item
+                const randomColor = getRandomColor();
+                
+                const vocabItem = {
+                    word: word,
+                    pronunciation: pronunciation,
+                    pos: pos,
+                    definition: definition,
+                    color: randomColor,
+                    timestamp: Date.now()
+                };
+                
+                vocabList.push(vocabItem);
+            }
+        }
         
         // Save to local storage
         localStorage.setItem('eslTool_vocabList', JSON.stringify(vocabList));
         
-        // Clear form
-        vocabWord.value = '';
-        vocabChinese.value = '';
-        vocabPOS.value = '';
-        vocabDefinition.value = '';
-        selectedColor.checked = false;
-        
-        // Clear color selection visual feedback
-        document.querySelectorAll('input[name="vocabColor"] + label').forEach(label => {
-            label.style.borderColor = 'transparent';
-        });
+        // Keep the textarea content (don't clear it)
+        // No need to clear color selection since we're using random colors
         
         // Update vocabulary display
         updateVocabDisplay();
@@ -168,16 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
             articleDisplay.innerHTML = '<p class="text-gray-500 italic">Article content will appear here...</p>';
             
             // Clear vocabulary form
-            vocabWord.value = '';
-            vocabChinese.value = '';
-            vocabPOS.value = '';
-            vocabDefinition.value = '';
-            vocabColorInputs.forEach(input => input.checked = false);
-            
-            // Clear color selection visual feedback
-            document.querySelectorAll('input[name="vocabColor"] + label').forEach(label => {
-                label.style.borderColor = 'transparent';
-            });
+            vocabText.value = '';
             
             // Clear vocabulary display
             updateVocabDisplay();
@@ -220,28 +226,34 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let highlightedText = articleText;
         
-        // Color mapping for pastel rainbow palette and matching font colors
-        const colorMap = {
-            red: { bg: '#87b792', text: '#3a5042' },      // Tailwind red-700
-            blue: { bg: '#afcc52', text: '#5f662f' },     // Tailwind blue-600
-            green: { bg: '#e3aa42', text: '#7f5f26' },    // Tailwind green-700
-            yellow: { bg: '#fd814a', text: '#9b4a2b' },   // Tailwind yellow-700
-            purple: { bg: '#ead494', text: '#8c7a55' },   // Tailwind amber-700 (for orange/yellow slot)
-        };
-        
         // Sort vocabulary by word length (longest first) to avoid partial matches
         const sortedVocab = vocabList.sort((a, b) => b.word.length - a.word.length);
         
         sortedVocab.forEach(item => {
             const regex = new RegExp(`\\b${item.word}\\b`, 'gi');
-            const color = colorMap[item.color] || colorMap.blue;
-            const colorStyle = `background: ${color.bg}; color: ${color.text}; border-radius: 0.25rem; font-weight: bold; padding: 0.1em 0.6em; margin: 0 0.1em; font-size: 1em; display: inline; line-height: 2;`;
+            const bgColor = item.color || '#e3f2fd';
+            const textColor = getContrastColor(bgColor);
+            const colorStyle = `background: ${bgColor}; color: ${textColor}; border-radius: 0.25rem; font-weight: bold; padding: 0.1em 0.6em; margin: 0 0.1em; font-size: 1em; display: inline; line-height: 2;`;
             highlightedText = highlightedText.replace(regex, `<span style=\"${colorStyle}\">${item.word}</span>`);
         });
         
         // Update the article display with highlighted text
         const articleDisplay = document.getElementById('articleDisplay');
         articleDisplay.innerHTML = `<p class=\"text-gray-700 leading-relaxed\">${highlightedText.replace(/\n/g, '</p><p class=\"text-gray-700 leading-relaxed\">')}</p>`;
+    }
+
+    // Function to get contrasting text color based on background
+    function getContrastColor(hexColor) {
+        // Convert hex to RGB
+        const r = parseInt(hexColor.slice(1, 3), 16);
+        const g = parseInt(hexColor.slice(3, 5), 16);
+        const b = parseInt(hexColor.slice(5, 7), 16);
+        
+        // Calculate luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Return black or white based on luminance
+        return luminance > 0.5 ? '#000000' : '#ffffff';
     }
 
     // Update vocabulary display
@@ -254,33 +266,62 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Color mapping for consistent display
-        const colorMap = {
-            red: { bg: '#87b792', text: '#3a5042' },
-            blue: { bg: '#afcc52', text: '#5f662f' },
-            green: { bg: '#e3aa42', text: '#7f5f26' },
-            yellow: { bg: '#fd814a', text: '#9b4a2b' },
-            purple: { bg: '#ead494', text: '#8c7a55' },
-        };
-        
         let vocabHTML = '';
         vocabList.forEach((item, index) => {
-            const color = colorMap[item.color] || colorMap.blue;
-            const cardStyle = `background: ${color.bg}; border-radius: 0.25rem; padding: 0.75em 1em; margin-bottom: 0.75em;`;
-            const wordStyle = `color: ${color.text}; font-weight: bold; font-size: 1.1em;`;
+            // Use the stored color or default to a light blue
+            const bgColor = item.color || '#e3f2fd';
+            const textColor = getContrastColor(bgColor);
+            const cardStyle = `background: ${bgColor}; border-radius: 0.25rem; padding: 0.75em 1em; margin-bottom: 0.75em;`;
+            const wordStyle = `color: ${textColor}; font-weight: bold; font-size: 1.1em;`;
             
             vocabHTML += `
-                <div style="${cardStyle}">
-                    <div><span style="${wordStyle}">${item.word}</span> <span class="vocab-pron">[${item.definition}]</span></div>
-                    <div class="mt-1">
-                        <span class="vocab-pos">${item.pos}</span>
-                        <span class="vocab-chinese">${item.chinese}</span>
+                <div style="${cardStyle}" data-vocab-index="${index}">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div><span style="${wordStyle}">${item.word}</span> <span class="vocab-pron">[${item.pronunciation}]</span></div>
+                            <div class="mt-1">
+                                <span class="vocab-pos">${item.pos}</span>
+                                <span class="vocab-definition">${item.definition}</span>
+                            </div>
+                        </div>
+                        <div class="ml-2">
+                            <input type="color" class="vocab-color-picker w-8 h-8 border border-gray-300 rounded cursor-pointer" 
+                                   data-index="${index}" value="${bgColor}" title="Change color">
+                        </div>
                     </div>
                 </div>
             `;
         });
         
         vocabContainer.innerHTML = vocabHTML;
+        
+        // Add event listeners to color pickers
+        document.querySelectorAll('.vocab-color-picker').forEach(picker => {
+            picker.addEventListener('change', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                const newColor = this.value;
+                
+                // Update vocabulary item color
+                let vocabList = JSON.parse(localStorage.getItem('eslTool_vocabList') || '[]');
+                if (vocabList[index]) {
+                    vocabList[index].color = newColor;
+                    localStorage.setItem('eslTool_vocabList', JSON.stringify(vocabList));
+                    
+                    // Update the card background color
+                    const card = this.closest('[data-vocab-index]');
+                    card.style.background = newColor;
+                    
+                    // Update the word color for contrast
+                    const wordSpan = card.querySelector('span[style*="font-weight: bold"]');
+                    if (wordSpan) {
+                        wordSpan.style.color = getContrastColor(newColor);
+                    }
+                    
+                    // Update highlighting in article
+                    highlightVocabularyInArticle();
+                }
+            });
+        });
         
         // Update highlighting in article after vocabulary changes
         highlightVocabularyInArticle();
@@ -357,6 +398,12 @@ document.addEventListener('DOMContentLoaded', function() {
             articleSection.classList.add('lg:col-span-3');
         }
         if (printBtn) printBtn.classList.remove('hidden');
+        
+        // Hide color pickers in vocabulary cards when in preview mode
+        const colorPickers = document.querySelectorAll('.vocab-color-picker');
+        colorPickers.forEach(picker => {
+            picker.style.display = 'none';
+        });
     }
 
     if (printBtn) {
@@ -365,19 +412,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Add visual feedback for color selection
-    vocabColorInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            // Remove border from all color labels
-            document.querySelectorAll('input[name="vocabColor"] + label').forEach(label => {
-                label.style.borderColor = 'transparent';
-            });
-            
-            // Add border to selected color label
-            if (this.checked) {
-                this.nextElementSibling.style.borderColor = '#3b82f6';
-                this.nextElementSibling.style.borderWidth = '3px';
-            }
-        });
-    });
+    // Color picker functionality removed - using random colors instead
 });
